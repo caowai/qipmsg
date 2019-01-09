@@ -6,6 +6,9 @@
 #include <QTranslator>
 #include <QThread>
 #include <QMessageBox>
+#include "filetransworker.h"
+
+extern quint32 g_pkg_seq;
 
 QIPMSG::QIPMSG(QWidget *parent) :
     QMainWindow(parent),
@@ -290,7 +293,8 @@ void QIPMSG::qIpMsgChatSent(QString data,QHostAddress dest)
         {
             if(data.length() > 0)
             {
-                mUsers.at(i)->userPktSeq =(uint32_t)(time(nullptr));
+                mUsers.at(i)->userPktSeq = g_pkg_seq++;
+                //mUsers.at(i)->userPktSeq =(uint32_t)(time(nullptr));
                 //Send chat content out
                 session.ipMsgSendData(&mSelf,dest,fromUnicode(data));
                 //Update Chat history in Chat form.
@@ -418,6 +422,8 @@ void QIPMSG::timerEvent(QTimerEvent *event)
          else {
              user = new IpMsgUser();
              connect(user->chatForm,SIGNAL(sent(QString,QHostAddress)),this,SLOT(qIpMsgChatSent(QString,QHostAddress)));
+             connect(user->chatForm,SIGNAL(acceptFile(fileEntryT *)),this,SLOT(qIpMsgAcceptFile(fileEntryT *)));
+             connect(user->chatForm,SIGNAL(rejectFile(fileEntryT *)),this,SLOT(qIpMsgRejectFile(fileEntryT *)));
          }//User information update
 
          user->userVer = values.at(0);
@@ -428,7 +434,6 @@ void QIPMSG::timerEvent(QTimerEvent *event)
          user->userHostName = values.at(3);
 
          user->userHostAddr = src;
-
 
          if(chatData.length()>0)
          {
@@ -506,6 +511,8 @@ void QIPMSG::timerEvent(QTimerEvent *event)
                         newFile->info.fileName = tmp.at(1);
                         newFile->info.size = tmp.at(2).toUInt(nullptr,16);
                         newFile->info.permission = tmp.at(3).toUInt(nullptr,16);
+                        newFile->fileHost = mUsers.at(i)->userHostAddr.toIPv4Address();
+                        newFile->fileTranStatus = FILE_TRANS_STATUS_IDLE;
                         mUsers.at(i)->chatForm->addRemoteShareFile(newFile);
                         qDebug()<<"Add"<<tmp.at(1);
                      }
@@ -652,13 +659,15 @@ void QIPMSG::qIpMsgFileServerHandle(quint32 ip, quint16 port, QByteArray data)
 void QIPMSG::qIpMsgFileTransProgress(quint32 fileId,int progress)
 {
    //qDebug()<<"File ID"<<fileId<<"Progress"<<progress;
+    //qDebug()<<"SendFile SLOT:"<<QThread::currentThreadId();
    for(int i =0; i< mUsers.count();i++)
    {
        if(mUsers.at(i)->chatForm != nullptr)
        {
             for(int j = 0; j< mUsers.at(i)->chatForm->fileList.count();j++)
             {
-                if(mUsers.at(i)->chatForm->fileList.at(j)->fileId == fileId)
+                if(mUsers.at(i)->chatForm->fileList.at(j)->fileId == fileId
+                        && mUsers.at(i)->chatForm->fileList.at(j)->fileOut == true)
                 {
                     mUsers.at(i)->chatForm->updateFileProgress(j,progress);
                     return;
@@ -678,7 +687,8 @@ void QIPMSG::qIpMsgFileTransError(quint32 fileId,int progress)
        {
             for(int j = 0; j< mUsers.at(i)->chatForm->fileList.count();j++)
             {
-                if(mUsers.at(i)->chatForm->fileList.at(j)->fileId == fileId)
+                if(mUsers.at(i)->chatForm->fileList.at(j)->fileId == fileId
+                        && mUsers.at(i)->chatForm->fileList.at(j)->fileOut == true)
                 {
                     mUsers.at(i)->appendChatHistory(toUnicode(mSelf.userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
                     mUsers.at(i)->appendChatHistory(tr("Send")+" \""+mUsers.at(i)->chatForm->fileList.at(j)->info.absoluteFilePath+"\" "+tr("to")+" "+mUsers.at(i)->userNickName+tr(" error"));
@@ -703,7 +713,8 @@ void QIPMSG::qIpMsgFileTransFinished(quint32 fileId)
        {
             for(int j = 0; j< mUsers.at(i)->chatForm->fileList.count();j++)
             {
-                if(mUsers.at(i)->chatForm->fileList.at(j)->fileId == fileId)
+                if(mUsers.at(i)->chatForm->fileList.at(j)->fileId == fileId
+                        && mUsers.at(i)->chatForm->fileList.at(j)->fileOut == true)
                 {
                     mUsers.at(i)->appendChatHistory(toUnicode(mSelf.userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
                     mUsers.at(i)->appendChatHistory(tr("Send")+" \""+mUsers.at(i)->chatForm->fileList.at(j)->info.absoluteFilePath+"\" "+tr("to")+" "+mUsers.at(i)->userNickName+tr(" finished "));
@@ -717,3 +728,40 @@ void QIPMSG::qIpMsgFileTransFinished(quint32 fileId)
         }
    }
 }
+
+void QIPMSG::qIpMsgAcceptFile(fileEntryT *file)
+{
+    qDebug()<<"Accept file"<<file->info.fileName;
+    for(int i =0; i< mUsers.count();i++)
+    {
+        if(mUsers.at(i)->userHostAddr.toIPv4Address() == file->fileHost)
+        {
+            for(int j =0; j< mUsers.at(i)->chatForm->fileList.count();j++)
+            {
+                if(mUsers.at(i)->chatForm->fileList.at(j)->fileId == file->fileId
+                        && mUsers.at(i)->chatForm->fileList.at(j)->fileOut == false
+                        && mUsers.at(i)->chatForm->fileList.at(j)->fileTranStatus == FILE_TRANS_STATUS_IDLE)
+                {
+                    mUsers.at(i)->chatForm->fileList.at(j)->fileTranStatus = FILE_TRANS_STATUS_QUEUE;
+                    mUsers.at(i)->fileQueue.append(mUsers.at(i)->chatForm->fileList.at(j));
+#if 1
+                    mUsers.at(i)->chatForm->fileList.at(j)->fileTranStatus = FILE_TRANS_STATUS_RUN;
+                    IpMsgFileRecv *recv = new IpMsgFileRecv(&mSelf,file);
+                    connect(recv->client,SIGNAL(ipMsgFileClientErrorSig(quint32,int)),mUsers.at(i)->chatForm,SLOT(fileRecvError(quint32,int)));
+                    connect(recv->client,SIGNAL(ipMsgFileClientProgressSig(quint32,int)),mUsers.at(i)->chatForm,SLOT(fileRecvProgress(quint32,int)));
+                    connect(recv->client,SIGNAL(ipMsgFileClientFinishSig(quint32)),mUsers.at(i)->chatForm,SLOT(fileRecvFinished(quint32)));
+#endif
+                    break;
+                }
+            }
+            break;
+        }
+    }
+}
+
+
+void QIPMSG::qIpMsgRejectFile(fileEntryT *file)
+{
+    qDebug()<<"Reject file"<<file->info.fileName;
+}
+

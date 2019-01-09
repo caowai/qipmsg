@@ -77,12 +77,11 @@ FormChat::FormChat(QWidget *parent) :
     connect(addfileAction,SIGNAL(triggered()),this,SLOT(addShareFile()));
     connect(delfileAction,SIGNAL(triggered()),this,SLOT(delShareFile()));
     connect(delAllAction,SIGNAL(triggered()),this,SLOT(delAllShareFile()));
-#if 0
+
     connect(acceptfileAction,SIGNAL(triggered()),this,SLOT(acceptShareFile()));
     connect(acceptAllAction,SIGNAL(triggered()),this,SLOT(acceptAllShareFile()));
     connect(rejectfileAction,SIGNAL(triggered()),this,SLOT(rejectShareFile()));
     connect(rejectAllAction,SIGNAL(triggered()),this,SLOT(rejectAllShareFile()));
-#endif
 
     connect(ui->tableWidgetSendFileList,SIGNAL(customContextMenuRequested(const QPoint)),this,SLOT(on_tableWidgetSendFileList_customContextMenuRequested(const QPoint)));
     connect(ui->tableWidgetRecvFileList,SIGNAL(customContextMenuRequested(const QPoint)),this,SLOT(on_tableWidgetRecvFileList_customContextMenuRequested(const QPoint)));
@@ -207,21 +206,45 @@ void FormChat::addRemoteShareFile(fileEntryT *newfile)
 void FormChat::acceptShareFile()
 {
     qDebug()<<__FUNCTION__;
+    int index = ui->tableWidgetRecvFileList->currentRow();
+    if(fileList.at(index)->fileTranStatus == FILE_TRANS_STATUS_IDLE)
+    {
+        emit acceptFile(fileList.at(index));
+    }
 }
 
 void FormChat::rejectShareFile()
 {
+    int index = ui->tableWidgetRecvFileList->currentRow();
+    if(fileList.at(index)->fileTranStatus == FILE_TRANS_STATUS_IDLE)
+    {
+        emit rejectFile(fileList.at(index));
+    }
     qDebug()<<__FUNCTION__;
 }
 
 void FormChat::acceptAllShareFile()
 {
     qDebug()<<__FUNCTION__;
+
+    for(int i=0;i<fileList.count();i++)
+    {
+        if(fileList.at(i)->fileTranStatus == FILE_TRANS_STATUS_IDLE)
+            emit acceptFile(fileList.at(i));
+    }
+
+
 }
 
 void FormChat::rejectAllShareFile()
 {
     qDebug()<<__FUNCTION__;
+
+    for(int i=0;i<fileList.count();i++)
+    {
+        if(fileList.at(i)->fileTranStatus == FILE_TRANS_STATUS_IDLE)
+            emit rejectFile(fileList.at(i));
+    }
 }
 bool FormChat::event(QEvent *event)
 {
@@ -328,10 +351,70 @@ void FormChat::updateFileProgress(quint32 fileId,int progress)
 
 void FormChat::updateFileError(quint32 fileId,int progress)
 {
-
     QProgressBar *sizeBar = new QProgressBar();
     sizeBar->setFormat(tr("Error"));
     sizeBar->setTextVisible(true);
     sizeBar->setValue(progress);
     ui->tableWidgetSendFileList->setCellWidget(fileId,1,sizeBar);
+}
+
+void FormChat::fileRecvError(quint32 fileId,int progress)
+{
+    for(int i=0;i<fileList.count();i++)
+    {
+        if(fileList.at(i)->fileId == fileId
+                && fileList.at(i)->fileOut == false
+                && fileList.at(i)->fileTranStatus == FILE_TRANS_STATUS_RUN)
+        {
+            QProgressBar *sizeBar = new QProgressBar();
+            sizeBar->setFormat(tr("Error"));
+            sizeBar->setTextVisible(true);
+            sizeBar->setValue(progress);
+            ui->tableWidgetRecvFileList->setCellWidget(i,1,sizeBar);
+            ui->tableWidgetRecvFileList->removeRow(i);
+            fileList.removeAt(i);
+            break;
+        }
+    }
+}
+
+void FormChat::fileRecvProgress(quint32 fileId,int progress)
+{
+    //qDebug()<<"RecvFile SLOT:"<<QThread::currentThreadId();
+    for(int i=0;i<fileList.count();i++)
+    {
+        if(fileList.at(i)->fileId == fileId
+                && fileList.at(i)->fileOut == false
+                && fileList.at(i)->fileTranStatus == FILE_TRANS_STATUS_RUN)
+        {
+            QProgressBar *sizeBar = new QProgressBar();
+            sizeBar->setFormat(FileSizeConvert(fileList.at(i)->info.size));
+            sizeBar->setTextVisible(true);
+            sizeBar->setValue(progress);
+            ui->tableWidgetRecvFileList->setCellWidget(i,1,sizeBar);
+            break;
+        }
+    }
+}
+
+void FormChat::fileRecvFinished(quint32 fileId)
+{
+    for(int i=0;i<fileList.count();i++)
+    {
+        if(fileList.at(i)->fileId == fileId
+                && fileList.at(i)->fileOut == false
+                && fileList.at(i)->fileTranStatus == FILE_TRANS_STATUS_RUN)
+        {
+            fileList.at(i)->fileTranStatus = FILE_TRANS_STATUS_FINISHED;
+            QProgressBar *sizeBar = new QProgressBar();
+            sizeBar->setFormat(FileSizeConvert(fileList.at(i)->info.size));
+            sizeBar->setTextVisible(true);
+            sizeBar->setValue(100);
+            ui->tableWidgetRecvFileList->setCellWidget(i,1,sizeBar);
+            ui->tableWidgetRecvFileList->removeRow(i);
+            fileList.removeAt(i);
+            //ui->textEditHistory->append()
+            break;
+        }
+    }
 }

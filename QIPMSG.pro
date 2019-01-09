@@ -33,7 +33,8 @@ SOURCES += \
     dialogsetting.cpp \
     ipmsgfileserver.cpp \
     ipmsgfileclient.cpp \
-    filetransworker.cpp
+    filetransworker.cpp \
+    ipmsgfilerecv.cpp
 
 HEADERS += \
         qipmsg.h \
@@ -43,7 +44,9 @@ HEADERS += \
     dialogsetting.h \
     ipmsgfileserver.h \
     ipmsgfileclient.h \
-    filetransworker.h
+    filetransworker.h \
+    ipmsgfilerecv.h \
+    ipmsgcommon.h
 
 FORMS += \
         qipmsg.ui \

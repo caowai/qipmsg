@@ -10,10 +10,12 @@
 #include <QDateTime>
 #include <QPushButton>
 #include <QTranslator>
+#include "ipmsgcommon.h"
 #include "dialogsetting.h"
 #include "ipmsgfileserver.h"
-//#include <ipmsguser.h>
-#include <ipmsgudpsession.h>
+#include "ipmsgudpsession.h"
+#include "ipmsgfilerecv.h"
+
 
 namespace Ui {
 class QIPMSG;
@@ -27,6 +29,7 @@ public:
     explicit QIPMSG(QWidget *parent = nullptr);
     ~QIPMSG();
     QTranslator *qIpMsgLang = nullptr;
+    IpMsgUser mSelf;
 
 public slots:
    void qIpMsgUdpSessionHandle(QHostAddress src, QByteArray data);
@@ -48,6 +51,8 @@ private slots:
    void qIpMsgFileTransFinished(quint32 fileId);
    void qIpMsgFileTransProgress(quint32 fileId,int progress);
    void qIpMsgFileTransError(quint32 fileId,int progress);
+   void qIpMsgAcceptFile(fileEntryT *file);
+   void qIpMsgRejectFile(fileEntryT *file);
 
 signals:
    void userListUpdate();
@@ -64,7 +69,6 @@ private:
     DialogSetting *mSetPanel = nullptr;
     IpMsgUdpSession session;
     IpMsgFileServer *fileServer;
-    IpMsgUser mSelf;
     QString mCodec="GBK";
     unsigned int mStartIp=0;
     unsigned int mEndIp=0;

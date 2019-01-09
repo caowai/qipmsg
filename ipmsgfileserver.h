@@ -6,10 +6,7 @@
 #include <QFileInfo>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include "ipmsguser.h"
-#include "ipmsgfileclient.h"
-
-
+#include "ipmsgcommon.h"
 
 class IpMsgFileServer : public QObject
 {

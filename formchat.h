@@ -6,7 +6,7 @@
 #include <QTextEdit>
 #include <QMenu>
 #include <QListWidgetItem>
-#include "ipmsgfileclient.h"
+#include "ipmsgcommon.h"
 
 namespace Ui {
 class FormChat;
@@ -32,6 +32,7 @@ public:
     void updateFileError(quint32 fileId,int progress);
     void delFixedShareFile(int index);
     void addRemoteShareFile(fileEntryT *newfile);
+
 protected:
     bool event(QEvent *event);
 signals:
@@ -39,6 +40,8 @@ signals:
     void addSendFile(QString file);
     void delSendFile(int index);
     void delAllSendFile();
+    void acceptFile(fileEntryT *file);
+    void rejectFile(fileEntryT *file);
 private:
     Ui::FormChat *ui;
     QString mUser;
@@ -59,6 +62,9 @@ private slots:
     void rejectAllShareFile();
     void on_tableWidgetSendFileList_customContextMenuRequested(const QPoint &pos);
     void on_tableWidgetRecvFileList_customContextMenuRequested(const QPoint &pos);
+    void fileRecvFinished(quint32 fileId);
+    void fileRecvProgress(quint32 fileId,int progress);
+    void fileRecvError(quint32 fileId,int progress);
 
 };
 

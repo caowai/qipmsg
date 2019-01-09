@@ -1,5 +1,6 @@
 #include "ipmsguser.h"
 
+
 IpMsgUser::IpMsgUser(QObject *parent) : QObject(parent)
 {
     userVer.clear();

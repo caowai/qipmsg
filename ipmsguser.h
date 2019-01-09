@@ -4,11 +4,11 @@
 #include <QMainWindow>
 #include <QObject>
 #include <QWidget>
-
 #include <QHostAddress>
 #include <QHostInfo>
-#include <formchat.h>
-#include "ipmsgfileclient.h"
+#include "formchat.h"
+#include "ipmsgcommon.h"
+
 
 class IpMsgUser : public QObject
 {

@@ -6,6 +6,7 @@
 #include <QNetworkInterface>
 #include <QDateTime>
 
+quint32 g_pkg_seq = 0;
 IpMsgUdpSession::IpMsgUdpSession(QObject *parent) : QObject(parent)
 {
        if(false == ipMsgSock.bind(QHostAddress::AnyIPv4, IPMSG_PORT, QUdpSocket::ShareAddress))
@@ -37,7 +38,8 @@ void IpMsgUdpSession::ipMsgUserExit(IpMsgUser *user)
     QList<QNetworkAddressEntry> entryList;
     QByteArray command;
     command.append(user->userVer+":");
-    command.append(QString::number(time(nullptr),10)+":");
+    command.append(QString::number(g_pkg_seq++)+":");
+    //command.append(QString::number(time(nullptr),10)+":");
     command.append(user->userId+":");
     command.append(user->userHostName+":");
     command.append(QString::number(IPMSG_BR_EXIT|IPMSG_ABSENCEOPT,10)+":");
@@ -87,7 +89,8 @@ void IpMsgUdpSession::ipMsgUserRefresh(IpMsgUser *user,unsigned int startip, uns
     ipMsgHostStart = startip;
     ipMsgHostCurrent = startip;
     command.append(mUser->userVer+":");
-    command.append(QString::number(time(nullptr),10)+":");
+    command.append(QString::number(g_pkg_seq++)+":");
+    //command.append(QString::number(time(nullptr),10)+":");
     command.append(mUser->userId+":");
     command.append(mUser->userHostName+":");
     command.append(QString::number(IPMSG_BR_ENTRY|IPMSG_ABSENCEOPT,10)+":");
@@ -139,7 +142,8 @@ void IpMsgUdpSession::timerEvent(QTimerEvent *event)
             && ipMsgHostCurrent <= ipMsgHostEnd)
     {
         command.append(mUser->userVer+":");
-        command.append(QString::number(time(nullptr),10)+":");
+        command.append(QString::number(g_pkg_seq++)+":");
+        //command.append(QString::number(time(nullptr),10)+":");
         command.append(mUser->userId+":");
         command.append(mUser->userHostName+":");
         command.append(QString::number(IPMSG_BR_ENTRY|IPMSG_ABSENCEOPT,10)+":");
@@ -166,7 +170,8 @@ void IpMsgUdpSession::ipMsgRespOK(IpMsgUser *user, IpMsgUser *dest)
     {
 
         command.append(user->userVer+":");
-        command.append(QString::number(time(nullptr),10)+":");
+        command.append(QString::number(g_pkg_seq++)+":");
+        //command.append(QString::number(time(nullptr),10)+":");
         command.append(user->userId+":");
         command.append(user->userHostName+":");
         command.append(QString::number(IPMSG_RECVMSG|IPMSG_ABSENCEOPT,10)+":");
@@ -231,7 +236,8 @@ void IpMsgUdpSession::ipMsgRespBr(IpMsgUser*user, IpMsgUser *dest)
     command.clear();
     {
         command.append(user->userVer+":");
-        command.append(QString::number(time(nullptr),10)+":");
+        command.append(QString::number(g_pkg_seq++)+":");
+        //command.append(QString::number(time(nullptr),10)+":");
         command.append(user->userId+":");
         command.append(user->userHostName+":");
         command.append(QString::number(IPMSG_ANSENTRY,10)+":");

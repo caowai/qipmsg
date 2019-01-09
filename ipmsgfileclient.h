@@ -4,9 +4,9 @@
 #include <QObject>
 #include <QHostAddress>
 #include <QFileInfo>
-
-#include "filetransworker.h"
-
+#include <QThread>
+#include "ipmsgcommon.h"
+#include "ipmsguser.h"
 
 #define FILE_TRANS_STATUS_IDLE 0
 #define FILE_TRANS_STATUS_QUEUE 1
@@ -14,47 +14,46 @@
 #define FILE_TRANS_STATUS_RUN 3
 #define FILE_TRANS_STATUS_FINISHED 4
 
-typedef struct fileEntryInfoT
+typedef struct userInfoT
 {
-    qint64 size;
-    quint32 permission;
-    QString fileName;
-    QString absoluteFilePath;
-    quint32 fileType;
-    quint32 metadataChangeTime;
-}fileEntryInfoT;
-
-//QFileInfo a;
-
-typedef struct fileEntryT
-{
-    bool        fileOut;
-    quint32     fileId;
-    fileEntryInfoT    info;
-    quint64     fileOffset;
-    //If recv file, fileHost is source
-    //If send file, fileHost is dest
-    quint32      fileHost;
-    quint16      filePort;
-    //IDLE,SENDING,FINISHED. -- send file
-    //IDLE,RECEIVING,FINISHED -- recv file
-    quint32     fileTranStatus;
-    bool         fileTranStopFlag;
-}fileEntryT;
+    QByteArray userVer;
+    QByteArray userId;
+    QByteArray userNickName;
+    QByteArray userGroupName;
+    QByteArray userHostName;
+    QByteArray userEmail;
+    QByteArray userIcon;
+    QHostAddress userHostAddr;
+    uint32_t userPktSeq;
+    uint32_t userCfmSeq;
+}userInfoT;
 
 class IpMsgFileClient : public QObject
 {
     Q_OBJECT
 public:
-    explicit IpMsgFileClient(QObject *parent = nullptr);
-    fileEntryT fileInfo;
-
+    explicit IpMsgFileClient(IpMsgUser *user,QObject *parent = nullptr);
+    fileEntryT recvFileInfo;
+    int mProgress;
+    userInfoT me;
 signals:
+    void ipMsgFileClientErrorSig(quint32 fileid,int progress);
+    void ipMsgFileClientProgressSig(quint32 fileid,int progress);
+    void ipMsgFileClientFinishSig(quint32 fileid);
 
 public slots:
 
+private slots:
+    void ipMsgFileClientStart();
+    void ipMsgFileClientConnected();
+    void ipMsgFileClientError(QAbstractSocket::SocketError error);
+    void ipMsgFileClientDisconnected();
+    void ipMsgFileClientRecv();
+
 private:
-    //fileEntryT recvFileInfo;
+    QFile mFile;
+    quint64 mSize;
+
 };
 
 #endif // IPMSGFILECLIENT_H
