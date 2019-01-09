@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/userIcon">
+        <file>ipmsg.png</file>
+        <file>chat.png</file>
+    </qresource>
+</RCC>
