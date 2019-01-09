@@ -261,13 +261,11 @@ void QIPMSG::startChat(QListWidgetItem *item)
     if(nullptr == mUsers.at(currentRow)->chatForm)
     {
         mUsers.at(currentRow)->chatForm = new FormChat();
-        connect(mUsers.at(currentRow)->chatForm,SIGNAL(sent(QString,QHostAddress)),this,SLOT(qIpMsgChatSent(QString,QHostAddress)));
         //connect(mUsers.at(currentRow)->chatForm,SIGNAL(addSendFile(QString)),mUsers.at(currentRow),SLOT(addSendFile(QString)));
         //connect(mUsers.at(currentRow)->chatForm,SIGNAL(delSendFile(int)),mUsers.at(currentRow),SLOT(delSendFile(int)));
         //connect(mUsers.at(currentRow)->chatForm,SIGNAL(delAllSendFile()),mUsers.at(currentRow),SLOT(delAllSendFile()));
        // connect(mUsers.at(currentRow)->chatForm,SIGNAL(close()),this,SLOT(chatClean()));
     }
-
     //Update chat form information
     mUsers.at(currentRow)->chatForm->setWindowTitle(toUnicode(mUsers.at(currentRow)->userNickName));
 
@@ -300,11 +298,14 @@ void QIPMSG::qIpMsgChatSent(QString data,QHostAddress dest)
                 mUsers.at(i)->chatForm->getChat()->clear();
                 mUsers.at(i)->offlineTimer=startTimer(200);
             }
-            if(mUsers.at(i)->chatForm->fileList.size()>0)
+
+            if(mUsers.at(i)->chatForm->fileList.count()>0)
             {
-                for(int j=0;j<mUsers.at(i)->chatForm->fileList.size();j++)
+                for(int j=0;j<mUsers.at(i)->chatForm->fileList.count();j++)
                 {
-                    if(mUsers.at(i)->chatForm->fileList.at(j)->fileTranStatus == FILE_TRANS_STATUS_IDLE)
+                    if(mUsers.at(i)->chatForm->fileList.at(j)->fileTranStatus == FILE_TRANS_STATUS_IDLE
+                            && mUsers.at(i)->chatForm->fileList.at(j)->fileOut == true
+                            )
                     {
                         files.append(mUsers.at(i)->chatForm->fileList.at(j));
                         mUsers.at(i)->chatForm->fileList.at(j)->fileTranStatus = FILE_TRANS_STATUS_QUEUE;
@@ -413,6 +414,7 @@ void QIPMSG::timerEvent(QTimerEvent *event)
          }
          else {
              user = new IpMsgUser();
+             connect(user->chatForm,SIGNAL(sent(QString,QHostAddress)),this,SLOT(qIpMsgChatSent(QString,QHostAddress)));
          }//User information update
 
          user->userVer = values.at(0);
@@ -496,6 +498,7 @@ void QIPMSG::timerEvent(QTimerEvent *event)
                      if(tmp.count()>5)
                      {
                         fileEntryT *newFile = new fileEntryT();
+                        newFile->fileOut=false;
                         newFile->fileId = tmp.at(0).toUInt();
                         newFile->info.fileName = tmp.at(1);
                         newFile->info.size = tmp.at(2).toUInt(nullptr,16);
@@ -613,7 +616,8 @@ void QIPMSG::qIpMsgFileServerHandle(quint32 ip, quint16 port, QByteArray data)
     {
         if(reqFileId == mSelf.fileQueue.at(i)->fileId
                 && ip == mSelf.fileQueue.at(i)->fileHost
-                && mSelf.fileQueue.at(i)->fileTranStatus == FILE_TRANS_STATUS_QUEUE)
+                && mSelf.fileQueue.at(i)->fileTranStatus == FILE_TRANS_STATUS_QUEUE
+                && mSelf.fileQueue.at(i)->fileOut == true)
         {
             mSelf.fileQueue.at(i)->filePort = port;
             mSelf.fileQueue.at(i)->fileTranStatus = FILE_TRANS_STATUS_RUN;

@@ -134,6 +134,7 @@ void FormChat::addShareFile()
     ui->tableWidgetSendFileList->setCellWidget(current_row,1,sizeBar);
 
     fileNode = new fileEntryT();
+    fileNode->fileOut = true;
     fileNode->info.fileName = fileinfo.fileName();
     fileNode->info.size = fileinfo.size();
     fileNode->info.permission = fileinfo.permissions();
