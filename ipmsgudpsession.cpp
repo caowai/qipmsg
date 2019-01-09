@@ -8,7 +8,13 @@
 
 IpMsgUdpSession::IpMsgUdpSession(QObject *parent) : QObject(parent)
 {
-       ipMsgSock.bind(QHostAddress::AnyIPv4, IPMSG_PORT, QUdpSocket::ShareAddress);
+       if(false == ipMsgSock.bind(QHostAddress::AnyIPv4, IPMSG_PORT, QUdpSocket::ShareAddress))
+       {
+           mUdpBind = false;
+       }
+       else {
+           mUdpBind = true;
+       }
        connect(&ipMsgSock, SIGNAL(readyRead()),this, SLOT(ipMsgUdpDataHandle()));
 }
 

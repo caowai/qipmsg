@@ -17,6 +17,7 @@ class IpMsgFileServer : public QObject
 public:
     explicit IpMsgFileServer(QObject *parent = nullptr);
     QTcpSocket* fileServerSockMatch(quint32 host, quint16 port);
+    bool mFileServerListen = false;
 
 signals:
     void ipMsgFileServerDataReady(quint32 ip,quint16 port,QByteArray data);
@@ -26,6 +27,7 @@ signals:
     void fileServerFileTransFinished(quint32 fileId); // 结束信号
     void fileServerTransFinished();
 
+
 public slots:
     void fileServerNewConnection();
     void fileServerReadyRead();
@@ -34,7 +36,6 @@ public slots:
 
 private:
     QTcpServer    mServer;
-
     QList <fileEntryT *> fileSendQueue;
     QList <QTcpSocket *> mSocks;
     QThread *mSendThread  = nullptr;

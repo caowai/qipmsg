@@ -5,6 +5,7 @@
 #include <QLineEdit>
 #include <QTranslator>
 #include <QThread>
+#include <QMessageBox>
 
 QIPMSG::QIPMSG(QWidget *parent) :
     QMainWindow(parent),
@@ -26,21 +27,19 @@ QIPMSG::QIPMSG(QWidget *parent) :
 
     ui->setupUi(this);
 
+
+
     fileServer = new IpMsgFileServer();
+
 
     qIpMsgStatus("");
 
     ui->menuUser->setTitle(tr("User"));
     ui->actionRefresh->setText(tr("Refresh"));
-   // ui->actionSearch->setText(tr("Search"));
     ui->actionExit->setText(tr("Exit"));
 
     ui->menuSettings->setTitle(tr("Setting"));
     ui->actionConfigration->setText(tr("Configration"));
-
-    //ui->menuAbout->setTitle(tr("About"));
-   // ui->actionVersion->setText(tr("Version"));
-    //ui->actionEmail->setText(tr("Email"));
 
 
 
@@ -52,6 +51,22 @@ QIPMSG::QIPMSG(QWidget *parent) :
     connect(ui->actionConfigration,SIGNAL(triggered()),this,SLOT(qIpMsgConfigration()));
     connect(ui->actionEnglish,SIGNAL(triggered()),this,SLOT(qIpMsgLangtoEn()));
     connect(ui->actionChinese,SIGNAL(triggered()),this,SLOT(qIpMsgLangtoZh()));
+
+
+    if(session.mUdpBind  != true)
+    {
+        QMessageBox::critical(this,tr("Error"),tr("Bind to udp port failed"),1,0,0);
+        qApp->closeAllWindows();
+        exit(1);
+    }
+
+    if(fileServer->mFileServerListen != true)
+    {
+         QMessageBox::critical(this,tr("Error"),tr("Listen to tcp port failed"),1,0,0);
+         qApp->closeAllWindows();
+         exit(1);
+    }
+
 
     if(true == session.IpMsgUdpSessionValid())
     {
@@ -220,8 +235,6 @@ void QIPMSG::qIpMsgUserListUpdate()
     //IpMsgUserSort(mUsers);
     count = mUsers.count();
     qIpMsgStatus(tr("Found")+" "+QString::number(mUsers.count(),10)+" "+tr("users"));
-    //qIpMsgStatus(toUnicode((tr("Found").toUtf8()+" "+QString::number(mUsers.count(),10).toUtf8()+" "+tr("users").toUtf8())));
-    //qIpMsgStatus(fromUnicode(QString(tr("Found")+" "+QString::number(mUsers.count(),10)+" "+tr("users"))));
 
     for(int i=0;i<count;i++)
     {
@@ -257,18 +270,8 @@ void QIPMSG::startChat(QListWidgetItem *item)
     ui->listWidgetUserList->item(currentRow)->setIcon(QIcon(":/userIcon/chat.png"));
     ui->listWidgetUserList->item(currentRow)->setTextColor(QColor("black"));
 
-    //Create a new chat form window
-    if(nullptr == mUsers.at(currentRow)->chatForm)
-    {
-        mUsers.at(currentRow)->chatForm = new FormChat();
-        //connect(mUsers.at(currentRow)->chatForm,SIGNAL(addSendFile(QString)),mUsers.at(currentRow),SLOT(addSendFile(QString)));
-        //connect(mUsers.at(currentRow)->chatForm,SIGNAL(delSendFile(int)),mUsers.at(currentRow),SLOT(delSendFile(int)));
-        //connect(mUsers.at(currentRow)->chatForm,SIGNAL(delAllSendFile()),mUsers.at(currentRow),SLOT(delAllSendFile()));
-       // connect(mUsers.at(currentRow)->chatForm,SIGNAL(close()),this,SLOT(chatClean()));
-    }
     //Update chat form information
     mUsers.at(currentRow)->chatForm->setWindowTitle(toUnicode(mUsers.at(currentRow)->userNickName));
-
     mUsers.at(currentRow)->updateChatFormHistory();
     mUsers.at(currentRow)->chatForm->setClient(mUsers.at(currentRow)->userVer);
     mUsers.at(currentRow)->chatForm->setUserName(toUnicode(mUsers.at(currentRow)->userId));
@@ -291,7 +294,7 @@ void QIPMSG::qIpMsgChatSent(QString data,QHostAddress dest)
                 //Send chat content out
                 session.ipMsgSendData(&mSelf,dest,fromUnicode(data));
                 //Update Chat history in Chat form.
-                mUsers.at(i)->appendChatHistory(toUnicode(mSelf.userNickName+" "+QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toUtf8()+"\n"));
+                mUsers.at(i)->appendChatHistory(toUnicode(mSelf.userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
                 mUsers.at(i)->appendChatHistory(data);
                 mUsers.at(i)->appendChatHistory("\n");
                 mUsers.at(i)->updateChatFormHistory();
@@ -523,7 +526,7 @@ void QIPMSG::timerEvent(QTimerEvent *event)
                 {
                     //qDebug("Need resp");
                     session.ipMsgRespOK(&mSelf,mUsers.at(i));
-                    mUsers.at(i)->appendChatHistory(toUnicode(mUsers.at(i)->userNickName+" "+QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toUtf8()+"\n"));
+                    mUsers.at(i)->appendChatHistory(toUnicode(mUsers.at(i)->userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
                     mUsers.at(i)->appendChatHistory(toUnicode(chatData.split(0).at(0)+"\n"));
                     if(nullptr != mUsers.at(i)->chatForm
                             && mUsers.at(i)->chatForm->isEnabled())
@@ -677,8 +680,8 @@ void QIPMSG::qIpMsgFileTransError(quint32 fileId,int progress)
             {
                 if(mUsers.at(i)->chatForm->fileList.at(j)->fileId == fileId)
                 {
-                    mUsers.at(i)->appendChatHistory(toUnicode(mSelf.userNickName+" "+QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toUtf8()+"\n"));
-                    mUsers.at(i)->appendChatHistory(tr("Send")+" \""+mUsers.at(i)->chatForm->fileList.at(j)->info.absoluteFilePath+"\" "+tr("to")+" "+mUsers.at(i)->userId+tr(" error"));
+                    mUsers.at(i)->appendChatHistory(toUnicode(mSelf.userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
+                    mUsers.at(i)->appendChatHistory(tr("Send")+" \""+mUsers.at(i)->chatForm->fileList.at(j)->info.absoluteFilePath+"\" "+tr("to")+" "+mUsers.at(i)->userNickName+tr(" error"));
                     mUsers.at(i)->appendChatHistory("\n");
                     mUsers.at(i)->updateChatFormHistory();
                     mUsers.at(i)->chatForm->updateFileError(j,progress);
@@ -702,8 +705,8 @@ void QIPMSG::qIpMsgFileTransFinished(quint32 fileId)
             {
                 if(mUsers.at(i)->chatForm->fileList.at(j)->fileId == fileId)
                 {
-                    mUsers.at(i)->appendChatHistory(toUnicode(mSelf.userNickName+" "+QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss").toUtf8()+"\n"));
-                    mUsers.at(i)->appendChatHistory(tr("Send")+" \""+mUsers.at(i)->chatForm->fileList.at(j)->info.absoluteFilePath+"\" "+tr("to")+" "+mUsers.at(i)->userId+tr(" finished "));
+                    mUsers.at(i)->appendChatHistory(toUnicode(mSelf.userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
+                    mUsers.at(i)->appendChatHistory(tr("Send")+" \""+mUsers.at(i)->chatForm->fileList.at(j)->info.absoluteFilePath+"\" "+tr("to")+" "+mUsers.at(i)->userNickName+tr(" finished "));
                     mUsers.at(i)->appendChatHistory("\n");
                     mUsers.at(i)->updateChatFormHistory();
                     mUsers.at(i)->chatForm->fileList.at(j)->fileTranStatus = FILE_TRANS_STATUS_FINISHED;

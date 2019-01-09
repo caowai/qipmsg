@@ -148,6 +148,7 @@ public:
     void ipMsgSendFiles(IpMsgUser *user,QHostAddress dest, QList <fileEntryT *>files);
     void ipMsgRespBr(IpMsgUser *user, IpMsgUser *dest);
     void ipMsgUserExit(IpMsgUser *user);
+    bool mUdpBind = false;
 signals:
     void ipMsgUdpSessionDataReady(QHostAddress src, QByteArray data);
 

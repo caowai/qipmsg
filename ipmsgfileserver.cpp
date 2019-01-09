@@ -9,7 +9,11 @@ IpMsgFileServer::IpMsgFileServer(QObject *parent) : QObject(parent)
     if(false == mServer.listen(QHostAddress::Any,2425))
     {
         qDebug()<<"Listen to port 2425 filead";
+        mFileServerListen = false;
         return;
+    }
+    else {
+        mFileServerListen = true;
     }
     connect(&mServer,SIGNAL(newConnection()),this,SLOT(fileServerNewConnection()));
 }
