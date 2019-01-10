@@ -3,6 +3,7 @@
 #include "qipmsg.h"
 #include <QFileDialog>
 #include <QProgressBar>
+#include "qipmsg.h"
 
 static uint32_t g_send_file_id = 100;
 
@@ -106,46 +107,53 @@ FormChat::~FormChat()
 void FormChat::addShareFile()
 {
     fileEntryT *fileNode =  nullptr;
-    QString file = QFileDialog::getOpenFileName(nullptr,nullptr,nullptr,"");
+    QStringList files = QFileDialog::getOpenFileNames(this,tr("Select one or more files to send"),QDir::homePath(),"",nullptr);
     QProgressBar *sizeBar = nullptr;
     QFileInfo fileinfo;
+    QTableWidgetItem  *row1Item;
     int current_row = ui->tableWidgetSendFileList->rowCount();
 
-    if(file.length() == 0)
+    if(files.count() == 0)
     {
         qDebug("no file selected");
         return;
     }
 
-    fileinfo.setFile(file);
-    if(fileinfo.isFile() == false)
+    for(int i=0;i<files.count();i++)
     {
-        qDebug("invalid file type");
-        return;
+        fileinfo.setFile(files.at(i));
+        if(fileinfo.isFile() == false)
+        {
+           qDebug("invalid file type");
+           continue;
+        }
+
+        row1Item = new QTableWidgetItem(fileinfo.fileName());
+        row1Item->setTextColor(QColor("Blue"));
+        row1Item->setFlags(row1Item->flags()^Qt::ItemIsEditable);
+        ui->tableWidgetSendFileList->insertRow(current_row);
+        ui->tableWidgetSendFileList->setItem(current_row,0,row1Item);
+        sizeBar = new QProgressBar();
+        sizeBar->setFormat(FileSizeConvert(fileinfo.size()));
+        sizeBar->setTextVisible(true);
+        sizeBar->setValue(0);
+        ui->tableWidgetSendFileList->setCellWidget(current_row,1,sizeBar);
+
+        fileNode = new fileEntryT();
+        fileNode->fileOut = true;
+        fileNode->info.fileName = fileinfo.fileName();
+        fileNode->info.size = fileinfo.size();
+        fileNode->info.permission = fileinfo.permissions();
+        fileNode->info.absoluteFilePath = fileinfo.absoluteFilePath();
+        fileNode->info.metadataChangeTime = fileinfo.metadataChangeTime().toTime_t();
+
+        fileNode->fileId = g_send_file_id++;
+        fileNode->fileHost = QHostAddress(ui->labelChatHostValue->text()).toIPv4Address();
+        fileNode->fileOffset = 0;
+        fileNode->fileTranStatus = FILE_TRANS_STATUS_IDLE;
+        fileList.append(fileNode);
+        //qDebug()<<ui->tableWidgetSendFileList->rowCount()<<QFileInfo(file).fileName()+"|"+QString::number(fileinfo.size(),10);
     }
-    //emit addSendFile(file);
-    ui->tableWidgetSendFileList->insertRow(current_row);
-    ui->tableWidgetSendFileList->setItem(current_row,0,new QTableWidgetItem(fileinfo.fileName()));
-    sizeBar = new QProgressBar();
-    sizeBar->setFormat(FileSizeConvert(fileinfo.size()));
-    sizeBar->setTextVisible(true);
-    sizeBar->setValue(0);
-    ui->tableWidgetSendFileList->setCellWidget(current_row,1,sizeBar);
-
-    fileNode = new fileEntryT();
-    fileNode->fileOut = true;
-    fileNode->info.fileName = fileinfo.fileName();
-    fileNode->info.size = fileinfo.size();
-    fileNode->info.permission = fileinfo.permissions();
-    fileNode->info.absoluteFilePath = fileinfo.absoluteFilePath();
-    fileNode->info.metadataChangeTime = fileinfo.metadataChangeTime().toTime_t();
-
-    fileNode->fileId = g_send_file_id++;
-    fileNode->fileHost = QHostAddress(ui->labelChatHostValue->text()).toIPv4Address();
-    fileNode->fileOffset = 0;
-    fileNode->fileTranStatus = FILE_TRANS_STATUS_IDLE;
-    fileList.append(fileNode);
-    //qDebug()<<ui->tableWidgetSendFileList->rowCount()<<QFileInfo(file).fileName()+"|"+QString::number(fileinfo.size(),10);
 }
 
 void FormChat::delFixedShareFile(int index)
@@ -194,8 +202,12 @@ void FormChat::addRemoteShareFile(fileEntryT *newfile)
     fileList.append(newfile);
 #endif
     //emit addSendFile(file);
+
+    QTableWidgetItem *row1Item = new QTableWidgetItem(newfile->info.fileName);
+    row1Item->setTextColor(QColor("Blue"));
+    row1Item->setFlags(row1Item->flags()^Qt::ItemIsEditable);
     ui->tableWidgetRecvFileList->insertRow(current_row);
-    ui->tableWidgetRecvFileList->setItem(current_row,0,new QTableWidgetItem(newfile->info.fileName));
+    ui->tableWidgetRecvFileList->setItem(current_row,0,row1Item);
     sizeBar = new QProgressBar();
     sizeBar->setFormat(FileSizeConvert(newfile->info.size));
     sizeBar->setTextVisible(true);
@@ -206,9 +218,17 @@ void FormChat::addRemoteShareFile(fileEntryT *newfile)
 void FormChat::acceptShareFile()
 {
     qDebug()<<__FUNCTION__;
+    QString dir  = QFileDialog::getExistingDirectory(nullptr,tr("Select a directory to save files"),QDir::homePath());
+    if(dir.length() == 0)
+    {
+        dir = QDir::homePath();
+    }
     int index = ui->tableWidgetRecvFileList->currentRow();
     if(fileList.at(index)->fileTranStatus == FILE_TRANS_STATUS_IDLE)
     {
+        fileList.at(index)->info.absoluteFilePath = dir;
+        fileList.at(index)->info.absoluteFilePath.append(QDir::separator());
+        fileList.at(index)->info.absoluteFilePath.append(fileList.at(index)->info.fileName);
         emit acceptFile(fileList.at(index));
     }
 }
@@ -226,11 +246,22 @@ void FormChat::rejectShareFile()
 void FormChat::acceptAllShareFile()
 {
     qDebug()<<__FUNCTION__;
+    QString dir  = QFileDialog::getExistingDirectory(nullptr,tr("Select a directory to save files"),QDir::homePath());
+
+    if(dir.length() == 0)
+    {
+        dir = QDir::homePath();
+    }
 
     for(int i=0;i<fileList.count();i++)
     {
         if(fileList.at(i)->fileTranStatus == FILE_TRANS_STATUS_IDLE)
+        {
+            fileList.at(i)->info.absoluteFilePath = dir;
+            fileList.at(i)->info.absoluteFilePath.append(QDir::separator());
+            fileList.at(i)->info.absoluteFilePath.append(fileList.at(i)->info.fileName);
             emit acceptFile(fileList.at(i));
+        }
     }
 
 
@@ -331,6 +362,7 @@ void FormChat::setClient(QString value)
 
 void FormChat::on_tableWidgetSendFileList_customContextMenuRequested(const QPoint &pos)
 {
+    qDebug()<<"X:"<<pos.x()<<"Y:"<<pos.y();
     mSendFileCmdMenu->exec(QCursor::pos());
 }
 
@@ -372,7 +404,8 @@ void FormChat::fileRecvError(quint32 fileId,int progress)
             sizeBar->setValue(progress);
             ui->tableWidgetRecvFileList->setCellWidget(i,1,sizeBar);
             ui->tableWidgetRecvFileList->removeRow(i);
-            fileList.removeAt(i);
+            fileList.at(i)->fileTranStatus = FILE_TRANS_STATUS_FINISHED;
+            emit recverror(fileList.at(i)->fileId);
             break;
         }
     }
@@ -412,8 +445,8 @@ void FormChat::fileRecvFinished(quint32 fileId)
             sizeBar->setValue(100);
             ui->tableWidgetRecvFileList->setCellWidget(i,1,sizeBar);
             ui->tableWidgetRecvFileList->removeRow(i);
-            fileList.removeAt(i);
-            //ui->textEditHistory->append()
+            fileList.at(i)->fileTranStatus = FILE_TRANS_STATUS_FINISHED;
+            emit recvfinish(fileList.at(i)->fileId);
             break;
         }
     }

@@ -61,7 +61,7 @@ void IpMsgFileClient::ipMsgFileClientConnected()
     if(fileReq.length() == sock->write(fileReq)
             && sock->waitForBytesWritten() == true  )
     {
-        mFile.setFileName("/home/pacino/"+recvFileInfo.info.fileName);
+        mFile.setFileName(recvFileInfo.info.absoluteFilePath);
         if(false == mFile.open(QIODevice::WriteOnly))
         {
             sock->disconnectFromHost();
@@ -87,7 +87,6 @@ void IpMsgFileClient::ipMsgFileClientRecv()
         {
             mFile.close();
             sock->disconnectFromHost();;
-            emit ipMsgFileClientErrorSig(recvFileInfo.fileId,mProgress);
         }
         mSize+=len;
     }
@@ -95,7 +94,6 @@ void IpMsgFileClient::ipMsgFileClientRecv()
     {
        mFile.close();
        sock->disconnectFromHost();
-       emit ipMsgFileClientErrorSig(recvFileInfo.fileId,mProgress);
        return;
     }
     else
@@ -114,10 +112,6 @@ void IpMsgFileClient::ipMsgFileClientRecv()
     if(mSize >= recvFileInfo.info.size)
     {
         qDebug()<<"Receive"<<recvFileInfo.info.fileName<<"finished";
-        if(mSize > recvFileInfo.info.size)
-            emit ipMsgFileClientErrorSig(recvFileInfo.fileId,100);
-        else
-            emit ipMsgFileClientFinishSig(recvFileInfo.fileId);
         mFile.close();
         sock->disconnectFromHost();
         return;
@@ -132,6 +126,19 @@ void IpMsgFileClient::ipMsgFileClientDisconnected()
        mFile.close();
    if(sock->isOpen())
        sock->close();
+
+   if(mSize == recvFileInfo.info.size)
+   {
+       emit ipMsgFileClientFinishSig(recvFileInfo.fileId);
+   }
+   else if(mSize < recvFileInfo.info.size)
+   {
+       emit ipMsgFileClientErrorSig(recvFileInfo.fileId,mProgress);
+   }
+   else
+   {
+       emit ipMsgFileClientErrorSig(recvFileInfo.fileId,100);
+   }
    QThread::currentThread()->quit();
 }
 
@@ -145,7 +152,18 @@ void IpMsgFileClient::ipMsgFileClientError(QAbstractSocket::SocketError error)
     if(sock->isOpen())
         sock->close();
 
-    emit ipMsgFileClientErrorSig(recvFileInfo.fileId,mProgress);
+    if(mSize == recvFileInfo.info.size)
+    {
+        emit ipMsgFileClientFinishSig(recvFileInfo.fileId);
+    }
+    else if(mSize < recvFileInfo.info.size)
+    {
+        emit ipMsgFileClientErrorSig(recvFileInfo.fileId,mProgress);
+    }
+    else
+    {
+        emit ipMsgFileClientErrorSig(recvFileInfo.fileId,100);
+    }
     QThread::currentThread()->quit();
 }
 

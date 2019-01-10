@@ -30,6 +30,8 @@ public:
     ~QIPMSG();
     QTranslator *qIpMsgLang = nullptr;
     IpMsgUser mSelf;
+    QString toUnicode(QByteArray data);
+
 
 public slots:
    void qIpMsgUdpSessionHandle(QHostAddress src, QByteArray data);
@@ -41,7 +43,6 @@ public slots:
    void qIpMsgChatSent(QString data,QHostAddress dest);
    void qIpMsgSettingsAccepted();
    void qIpMsgSettingsRejected();
-   QString toUnicode(QByteArray data);
    QByteArray fromUnicode(QString data);
    void qIpMsgStatus(QString data);
 
@@ -53,6 +54,8 @@ private slots:
    void qIpMsgFileTransError(quint32 fileId,int progress);
    void qIpMsgAcceptFile(fileEntryT *file);
    void qIpMsgRejectFile(fileEntryT *file);
+   void qIpMsgRecvFileFinish(quint32 fileId);
+   void qIpMsgRecvFileError(quint32 fileId);
 
 signals:
    void userListUpdate();

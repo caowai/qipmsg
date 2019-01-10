@@ -2,6 +2,7 @@
 #define IPMSGCOMMON_H
 
 #include <QCoreApplication>
+#include <QDir>
 
 typedef struct fileEntryInfoT
 {

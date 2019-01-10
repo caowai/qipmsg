@@ -421,9 +421,13 @@ void QIPMSG::timerEvent(QTimerEvent *event)
          }
          else {
              user = new IpMsgUser();
+             user->chatForm->main = this;
              connect(user->chatForm,SIGNAL(sent(QString,QHostAddress)),this,SLOT(qIpMsgChatSent(QString,QHostAddress)));
              connect(user->chatForm,SIGNAL(acceptFile(fileEntryT *)),this,SLOT(qIpMsgAcceptFile(fileEntryT *)));
              connect(user->chatForm,SIGNAL(rejectFile(fileEntryT *)),this,SLOT(qIpMsgRejectFile(fileEntryT *)));
+             connect(user->chatForm,SIGNAL(recvfinish(quint32)),this,SLOT(qIpMsgRecvFileFinish(quint32)));
+             connect(user->chatForm,SIGNAL(recverror(quint32)),this,SLOT(qIpMsgRecvFileError(quint32)));
+
          }//User information update
 
          user->userVer = values.at(0);
@@ -533,18 +537,17 @@ void QIPMSG::timerEvent(QTimerEvent *event)
                 {
                     //qDebug("Need resp");
                     session.ipMsgRespOK(&mSelf,mUsers.at(i));
-                    mUsers.at(i)->appendChatHistory(toUnicode(mUsers.at(i)->userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
-                    mUsers.at(i)->appendChatHistory(toUnicode(chatData.split(0).at(0)+"\n"));
-                    if(nullptr != mUsers.at(i)->chatForm
-                            && mUsers.at(i)->chatForm->isEnabled())
+                    mUsers.at(i)->chatForm->setWindowTitle(toUnicode(mUsers.at(i)->userNickName));
+                    if(!(IPMSG_FILEATTACHOPT & commandOpt))
                     {
-                        mUsers.at(i)->chatForm->setWindowTitle(toUnicode(mUsers.at(i)->userNickName));
+                        mUsers.at(i)->appendChatHistory(toUnicode(mUsers.at(i)->userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
+                        mUsers.at(i)->appendChatHistory(toUnicode(chatData.split(0).at(0)+"\n"));
                         mUsers.at(i)->updateChatFormHistory();
-                        mUsers.at(i)->chatForm->setClient(mUsers.at(i)->userVer);
-                        mUsers.at(i)->chatForm->setUserName(toUnicode(mUsers.at(i)->userId));
-                        mUsers.at(i)->chatForm->setHost(mUsers.at(i)->userHostAddr.toString());
-                        mUsers.at(i)->chatForm->setGroupName(toUnicode(mUsers.at(i)->userGroupName));
                     }
+                    mUsers.at(i)->chatForm->setClient(mUsers.at(i)->userVer);
+                    mUsers.at(i)->chatForm->setUserName(toUnicode(mUsers.at(i)->userId));
+                    mUsers.at(i)->chatForm->setHost(mUsers.at(i)->userHostAddr.toString());
+                    mUsers.at(i)->chatForm->setGroupName(toUnicode(mUsers.at(i)->userGroupName));
                 }
          }
      }
@@ -691,7 +694,7 @@ void QIPMSG::qIpMsgFileTransError(quint32 fileId,int progress)
                         && mUsers.at(i)->chatForm->fileList.at(j)->fileOut == true)
                 {
                     mUsers.at(i)->appendChatHistory(toUnicode(mSelf.userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
-                    mUsers.at(i)->appendChatHistory(tr("Send")+" \""+mUsers.at(i)->chatForm->fileList.at(j)->info.absoluteFilePath+"\" "+tr("to")+" "+mUsers.at(i)->userNickName+tr(" error"));
+                    mUsers.at(i)->appendChatHistory(tr("Send")+" \""+mUsers.at(i)->chatForm->fileList.at(j)->info.absoluteFilePath+"\" "+tr("error"));
                     mUsers.at(i)->appendChatHistory("\n");
                     mUsers.at(i)->updateChatFormHistory();
                     mUsers.at(i)->chatForm->updateFileError(j,progress);
@@ -717,7 +720,7 @@ void QIPMSG::qIpMsgFileTransFinished(quint32 fileId)
                         && mUsers.at(i)->chatForm->fileList.at(j)->fileOut == true)
                 {
                     mUsers.at(i)->appendChatHistory(toUnicode(mSelf.userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
-                    mUsers.at(i)->appendChatHistory(tr("Send")+" \""+mUsers.at(i)->chatForm->fileList.at(j)->info.absoluteFilePath+"\" "+tr("to")+" "+mUsers.at(i)->userNickName+tr(" finished "));
+                    mUsers.at(i)->appendChatHistory(tr("Send")+" \""+mUsers.at(i)->chatForm->fileList.at(j)->info.absoluteFilePath+"\" "+tr("finished"));
                     mUsers.at(i)->appendChatHistory("\n");
                     mUsers.at(i)->updateChatFormHistory();
                     mUsers.at(i)->chatForm->fileList.at(j)->fileTranStatus = FILE_TRANS_STATUS_FINISHED;
@@ -729,6 +732,79 @@ void QIPMSG::qIpMsgFileTransFinished(quint32 fileId)
    }
 }
 
+void QIPMSG::qIpMsgRecvFileFinish(quint32 fileId)
+{
+    FormChat *form = qobject_cast<FormChat*>(sender());
+    IpMsgUser *user = nullptr;
+    int j = 0;
+    int i = 0;
+    if(form != nullptr)
+    {
+
+        for(j=0;j<mUsers.count();j++)
+        {
+            if(form == mUsers.at(j)->chatForm)
+            {
+                user = mUsers.at(j);
+                break;
+            }
+        }
+        if(j == mUsers.count())
+            return;
+
+        for(i=0;i<form->fileList.count();i++)
+        {
+            if(form->fileList.at(i)->fileId == fileId
+                    && form->fileList.at(i)->fileOut == false
+                    && form->fileList.at(i)->fileTranStatus == FILE_TRANS_STATUS_FINISHED)
+            {
+                user->appendChatHistory(toUnicode(user->userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
+                user->appendChatHistory(tr("Receive")+" \""+form->fileList.at(i)->info.absoluteFilePath+"\" "+tr("finished"));
+                user->appendChatHistory("\n");
+                user->updateChatFormHistory();
+                form->fileList.removeAt(i);
+                break;
+            }
+        }
+    }
+}
+
+void QIPMSG::qIpMsgRecvFileError(quint32 fileId)
+{
+    FormChat *form = qobject_cast<FormChat*>(sender());
+    IpMsgUser *user = nullptr;
+    int j = 0;
+    int i = 0;
+    if(form != nullptr)
+    {
+
+        for(j=0;j<mUsers.count();j++)
+        {
+            if(form == mUsers.at(j)->chatForm)
+            {
+                user = mUsers.at(j);
+                break;
+            }
+        }
+        if(j == mUsers.count())
+            return;
+
+        for(i=0;i<form->fileList.count();i++)
+        {
+            if(form->fileList.at(i)->fileId == fileId
+                    && form->fileList.at(i)->fileOut == false
+                    && form->fileList.at(i)->fileTranStatus == FILE_TRANS_STATUS_FINISHED)
+            {
+                user->appendChatHistory(toUnicode(user->userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
+                user->appendChatHistory(tr("Receive")+" \""+form->fileList.at(i)->info.absoluteFilePath+"\" "+tr("error"));
+                user->appendChatHistory("\n");
+                user->updateChatFormHistory();
+                form->fileList.removeAt(i);
+                break;
+            }
+        }
+    }
+}
 void QIPMSG::qIpMsgAcceptFile(fileEntryT *file)
 {
     qDebug()<<"Accept file"<<file->info.fileName;
