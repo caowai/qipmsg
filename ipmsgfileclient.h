@@ -55,7 +55,7 @@ private slots:
 
 private:
     QFile mFile;
-    quint64 mSize;
+    qint64 mSize;
 
 };
 
