@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string notr="true"/>
   </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(211, 215, 207);</string>
+  </property>
   <widget class="QTextEdit" name="textEditChat">
    <property name="geometry">
     <rect>
@@ -21,6 +24,9 @@
      <width>361</width>
      <height>121</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(211, 215, 207);</string>
    </property>
   </widget>
   <widget class="QTextEdit" name="textEditHistory">
@@ -31,6 +37,9 @@
      <width>361</width>
      <height>241</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(211, 215, 207);</string>
    </property>
    <property name="readOnly">
     <bool>true</bool>
@@ -52,23 +61,26 @@
   <widget class="QWidget" name="widgetFile" native="true">
    <property name="geometry">
     <rect>
-     <x>370</x>
+     <x>380</x>
      <y>90</y>
-     <width>231</width>
+     <width>221</width>
      <height>321</height>
     </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(211, 215, 207);</string>
    </property>
    <widget class="QTableWidget" name="tableWidgetRecvFileList">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>170</y>
-      <width>211</width>
+      <width>201</width>
       <height>151</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true"/>
+     <string notr="true">background-color: rgb(186, 189, 182);</string>
     </property>
    </widget>
    <widget class="QTableWidget" name="tableWidgetSendFileList">
@@ -76,7 +88,7 @@
      <rect>
       <x>10</x>
       <y>0</y>
-      <width>211</width>
+      <width>201</width>
       <height>161</height>
      </rect>
     </property>
@@ -84,7 +96,7 @@
      <enum>Qt::DefaultContextMenu</enum>
     </property>
     <property name="styleSheet">
-     <string notr="true"/>
+     <string notr="true">background-color: rgb(186, 189, 182);</string>
     </property>
     <property name="lineWidth">
      <number>0</number>
@@ -112,10 +124,10 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>420</x>
+     <x>430</x>
      <y>10</y>
      <width>171</width>
-     <height>76</height>
+     <height>71</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -152,10 +164,10 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>380</x>
+     <x>390</x>
      <y>10</y>
      <width>37</width>
-     <height>80</height>
+     <height>71</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">

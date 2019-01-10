@@ -135,6 +135,7 @@ void FormChat::addShareFile()
         ui->tableWidgetSendFileList->setItem(current_row,0,row1Item);
         sizeBar = new QProgressBar();
         sizeBar->setFormat(FileSizeConvert(fileinfo.size()));
+        sizeBar->setAlignment(Qt::AlignHCenter);
         sizeBar->setTextVisible(true);
         sizeBar->setValue(0);
         ui->tableWidgetSendFileList->setCellWidget(current_row,1,sizeBar);
@@ -218,6 +219,7 @@ void FormChat::addRemoteShareFile(fileEntryT *newfile)
     ui->tableWidgetRecvFileList->setItem(current_row,0,row1Item);
     sizeBar = new QProgressBar();
     sizeBar->setFormat(FileSizeConvert(newfile->info.size));
+    sizeBar->setAlignment(Qt::AlignHCenter);
     sizeBar->setTextVisible(true);
     sizeBar->setValue(0);
     ui->tableWidgetRecvFileList->setCellWidget(current_row,1,sizeBar);
@@ -385,8 +387,10 @@ void FormChat::updateFileProgress(quint32 fileId,int progress)
 {
     QProgressBar *sizeBar = new QProgressBar();
     sizeBar->setFormat(FileSizeConvert(fileList.at(fileId)->info.size));
+    sizeBar->setAlignment(Qt::AlignHCenter);
     sizeBar->setTextVisible(true);
     sizeBar->setValue(progress);
+
     ui->tableWidgetSendFileList->setCellWidget(fileId,1,sizeBar);
 }
 
@@ -394,6 +398,7 @@ void FormChat::updateFileError(quint32 fileId,int progress)
 {
     QProgressBar *sizeBar = new QProgressBar();
     sizeBar->setFormat(tr("Error"));
+    sizeBar->setAlignment(Qt::AlignHCenter);
     sizeBar->setTextVisible(true);
     sizeBar->setValue(progress);
     ui->tableWidgetSendFileList->setCellWidget(fileId,1,sizeBar);
@@ -409,6 +414,7 @@ void FormChat::fileRecvError(quint32 fileId,int progress)
         {
             QProgressBar *sizeBar = new QProgressBar();
             sizeBar->setFormat(tr("Error"));
+            sizeBar->setAlignment(Qt::AlignHCenter);
             sizeBar->setTextVisible(true);
             sizeBar->setValue(progress);
             ui->tableWidgetRecvFileList->setCellWidget(i,1,sizeBar);

@@ -42,9 +42,6 @@ signals:
     void sendFileUpdate();
 
 private slots:
-    void addSendFile(QString file);
-    void delSendFile(int index);
-    void delAllSendFile();
 
 };
 

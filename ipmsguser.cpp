@@ -21,33 +21,6 @@ IpMsgUser::~IpMsgUser()
     qDebug()<<"Do nothing for"<<this->userId;
 }
 
-void IpMsgUser::addSendFile(QString file)
-{
-#if 0
-    IpMsgFileClient client;
-    client.fileInfo.info = QFileInfo(file);
-    client.fileInfo.fileId = g_send_file_id++;
-    fileClients.append(&client);
-    qDebug()<<"IpMsgUser"<<__FUNCTION__<<__LINE__<<"clients"<<fileClients.size();
-#endif
-}
-
-void IpMsgUser::delSendFile(int index)
-{
-#if 0
-    fileClients.takeAt(index);
-    qDebug()<<"IpMsgUser"<<__FUNCTION__<<__LINE__<<"clients"<<fileClients.size();
-#endif
-}
-
-void IpMsgUser::delAllSendFile()
-{
-#if 0
-    fileClients.clear();
-    qDebug()<<"IpMsgUser"<<__FUNCTION__<<__LINE__<<"clients"<<fileClients.size();
-#endif
-}
-
 
 void IpMsgUser::dumpUserInfo()
 {
