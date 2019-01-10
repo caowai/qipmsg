@@ -20,7 +20,7 @@ IpMsgFileClient::IpMsgFileClient(IpMsgUser *user,QObject *parent) : QObject(pare
 
 void IpMsgFileClient::ipMsgFileClientStart()
 {
-    QTcpSocket *sock = new QTcpSocket();
+    sock = new QTcpSocket();
     QHostAddress server;
 
     qDebug()<<__FUNCTION__<<"Thread"<<QThread::currentThreadId();
@@ -37,6 +37,19 @@ void IpMsgFileClient::ipMsgFileClientStart()
     {
         emit ipMsgFileClientErrorSig(recvFileInfo.fileId,mProgress);
         sock->disconnectFromHost();
+    }
+}
+
+void IpMsgFileClient::ipMsgFileClientClose()
+{
+    if(nullptr!=sock
+            && sock->isOpen())
+    {
+        if(sock->state() != QAbstractSocket::UnconnectedState)
+        {
+            sock->disconnectFromHost();
+            return;
+        }
     }
 }
 

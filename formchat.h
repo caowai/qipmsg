@@ -32,6 +32,7 @@ public:
     void updateFileError(quint32 fileId,int progress);
     void delFixedShareFile(int index);
     void addRemoteShareFile(fileEntryT *newfile);
+    void delFixedRemoteShareFile(int index);
     QWidget *main;
 protected:
     bool event(QEvent *event);
@@ -42,6 +43,7 @@ signals:
     void delAllSendFile();
     void acceptFile(fileEntryT *file);
     void rejectFile(fileEntryT *file);
+    void cancelFile(fileEntryT *file);
     void recvfinish(quint32 fileId);
     void recverror(quint32 fileId);
 private:

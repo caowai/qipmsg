@@ -14,8 +14,10 @@ public:
     explicit IpMsgFileRecv(IpMsgUser *user,fileEntryT *file,QObject *parent = nullptr);
     IpMsgFileClient *client = nullptr;
 signals:
+    void fileRecvCancel();
 
 public slots:
+    void ipMsgFileClientCancel(fileEntryT *file);
 
 };
 

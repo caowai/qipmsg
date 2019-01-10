@@ -7,6 +7,7 @@
 #include <QThread>
 #include "ipmsgcommon.h"
 #include "ipmsguser.h"
+#include <QTcpSocket>
 
 #define FILE_TRANS_STATUS_IDLE 0
 #define FILE_TRANS_STATUS_QUEUE 1
@@ -34,6 +35,7 @@ class IpMsgFileClient : public QObject
 public:
     explicit IpMsgFileClient(IpMsgUser *user,QObject *parent = nullptr);
     fileEntryT recvFileInfo;
+    QTcpSocket *sock;
     int mProgress;
     userInfoT me;
 signals:
@@ -49,6 +51,7 @@ private slots:
     void ipMsgFileClientError(QAbstractSocket::SocketError error);
     void ipMsgFileClientDisconnected();
     void ipMsgFileClientRecv();
+    void ipMsgFileClientClose();
 
 private:
     QFile mFile;

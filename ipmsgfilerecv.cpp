@@ -21,6 +21,18 @@ IpMsgFileRecv::IpMsgFileRecv(IpMsgUser *user,fileEntryT *file, QObject *parent) 
     connect(thread,SIGNAL(finished()),thread,SLOT(deleteLater()));
     connect(thread,SIGNAL(finished()),client,SLOT(deleteLater()));
     connect(thread,SIGNAL(finished()),this,SLOT(deleteLater()));
+    connect(this,SIGNAL(fileRecvCancel()),client,SLOT(ipMsgFileClientClose()));
     thread->start();
+}
+
+void IpMsgFileRecv::ipMsgFileClientCancel(fileEntryT *file)
+{
+    if(client != nullptr)
+    {
+        if(client->recvFileInfo.fileId == file->fileId)
+        {
+            emit fileRecvCancel();
+        }
+    }
 }
 

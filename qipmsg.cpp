@@ -826,6 +826,7 @@ void QIPMSG::qIpMsgAcceptFile(fileEntryT *file)
                     connect(recv->client,SIGNAL(ipMsgFileClientErrorSig(quint32,int)),mUsers.at(i)->chatForm,SLOT(fileRecvError(quint32,int)));
                     connect(recv->client,SIGNAL(ipMsgFileClientProgressSig(quint32,int)),mUsers.at(i)->chatForm,SLOT(fileRecvProgress(quint32,int)));
                     connect(recv->client,SIGNAL(ipMsgFileClientFinishSig(quint32)),mUsers.at(i)->chatForm,SLOT(fileRecvFinished(quint32)));
+                    connect(mUsers.at(i)->chatForm,SIGNAL(cancelFile(fileEntryT *)),recv,SLOT(ipMsgFileClientCancel(fileEntryT *)));
 #endif
                     break;
                 }
@@ -839,5 +840,22 @@ void QIPMSG::qIpMsgAcceptFile(fileEntryT *file)
 void QIPMSG::qIpMsgRejectFile(fileEntryT *file)
 {
     qDebug()<<"Reject file"<<file->info.fileName;
+
+    for(int i =0; i< mUsers.count();i++)
+    {
+        if(mUsers.at(i)->userHostAddr.toIPv4Address() == file->fileHost)
+        {
+            for(int j =0; j< mUsers.at(i)->chatForm->fileList.count();j++)
+            {
+                if(mUsers.at(i)->chatForm->fileList.at(j)->fileId == file->fileId
+                        && mUsers.at(i)->chatForm->fileList.at(j)->fileOut == false
+                        && mUsers.at(i)->chatForm->fileList.at(j)->fileTranStatus == FILE_TRANS_STATUS_IDLE)
+                {
+                    mUsers.at(i)->chatForm->delFixedRemoteShareFile(j);
+                    break;
+                }
+            }
+        }
+    }
 }
 

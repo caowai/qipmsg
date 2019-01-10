@@ -111,7 +111,7 @@ void FormChat::addShareFile()
     QProgressBar *sizeBar = nullptr;
     QFileInfo fileinfo;
     QTableWidgetItem  *row1Item;
-    int current_row = ui->tableWidgetSendFileList->rowCount();
+    int current_row = 0;
 
     if(files.count() == 0)
     {
@@ -127,7 +127,7 @@ void FormChat::addShareFile()
            qDebug("invalid file type");
            continue;
         }
-
+        current_row = ui->tableWidgetSendFileList->rowCount();
         row1Item = new QTableWidgetItem(fileinfo.fileName());
         row1Item->setTextColor(QColor("Blue"));
         row1Item->setFlags(row1Item->flags()^Qt::ItemIsEditable);
@@ -152,10 +152,18 @@ void FormChat::addShareFile()
         fileNode->fileOffset = 0;
         fileNode->fileTranStatus = FILE_TRANS_STATUS_IDLE;
         fileList.append(fileNode);
-        //qDebug()<<ui->tableWidgetSendFileList->rowCount()<<QFileInfo(file).fileName()+"|"+QString::number(fileinfo.size(),10);
+        qDebug()<<ui->tableWidgetSendFileList->rowCount()<<fileNode->info.fileName+"|"<<fileNode->info.size;
     }
 }
 
+void FormChat::delFixedRemoteShareFile(int index)
+{
+    if(index >=0 && index < ui->tableWidgetRecvFileList->columnCount())
+    {
+        fileList.removeAt(index);
+        ui->tableWidgetRecvFileList->removeRow(index);
+    }
+}
 void FormChat::delFixedShareFile(int index)
 {
     if(index >=0 && index < ui->tableWidgetSendFileList->columnCount())
@@ -240,7 +248,10 @@ void FormChat::rejectShareFile()
     {
         emit rejectFile(fileList.at(index));
     }
-    qDebug()<<__FUNCTION__;
+    else
+    {
+        emit cancelFile(fileList.at(index));
+    }
 }
 
 void FormChat::acceptAllShareFile()
@@ -362,7 +373,6 @@ void FormChat::setClient(QString value)
 
 void FormChat::on_tableWidgetSendFileList_customContextMenuRequested(const QPoint &pos)
 {
-    qDebug()<<"X:"<<pos.x()<<"Y:"<<pos.y();
     mSendFileCmdMenu->exec(QCursor::pos());
 }
 
@@ -373,7 +383,6 @@ void FormChat::on_tableWidgetRecvFileList_customContextMenuRequested(const QPoin
 
 void FormChat::updateFileProgress(quint32 fileId,int progress)
 {
-
     QProgressBar *sizeBar = new QProgressBar();
     sizeBar->setFormat(FileSizeConvert(fileList.at(fileId)->info.size));
     sizeBar->setTextVisible(true);
