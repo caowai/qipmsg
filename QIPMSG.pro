@@ -51,8 +51,7 @@ HEADERS += \
 FORMS += \
         qipmsg.ui \
     formchat.ui \
-    dialogsetting.ui \
-    dialogsendfilemenu.ui
+    dialogsetting.ui
 
 CONFIG += mobility
 MOBILITY = 
