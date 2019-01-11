@@ -777,7 +777,6 @@ void QIPMSG::qIpMsgRecvFileError(quint32 fileId)
     int i = 0;
     if(form != nullptr)
     {
-
         for(j=0;j<mUsers.count();j++)
         {
             if(form == mUsers.at(j)->chatForm)

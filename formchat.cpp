@@ -409,8 +409,8 @@ void FormChat::fileRecvError(quint32 fileId,int progress)
     for(int i=0;i<fileList.count();i++)
     {
         if(fileList.at(i)->fileId == fileId
-                && fileList.at(i)->fileOut == false
-                && fileList.at(i)->fileTranStatus == FILE_TRANS_STATUS_RUN)
+                && fileList.at(i)->fileOut == false)
+                //&& fileList.at(i)->fileTranStatus == FILE_TRANS_STATUS_RUN)
         {
             QProgressBar *sizeBar = new QProgressBar();
             sizeBar->setFormat(tr("Error"));
