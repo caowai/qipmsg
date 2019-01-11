@@ -68,3 +68,5 @@ RESOURCES += \
 
 TRANSLATIONS += translations_zh.ts
 
+RC_ICONS =qipmsg.ico
+
