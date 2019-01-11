@@ -18,11 +18,11 @@ QIPMSG::QIPMSG(QWidget *parent) :
     qIpMsgLang->load(":/translations/translations_zh.qm");
     QApplication::instance()->installTranslator(qIpMsgLang);
 
-    mSelf.userId=fromUnicode(QString(tr(IPMSG_DEFAULT_USERNAME)));
+    mSelf.userId=fromUnicode(QString(QHostInfo::localHostName()));
     mSelf.userVer=QString(IPMSG_VERSION).toUtf8();
     mSelf.userPktSeq = 0;
     mSelf.userHostName = QHostInfo::localHostName().toUtf8();
-    mSelf.userNickName = fromUnicode(QString(tr(IPMSG_DEFAULT_NICKNAME)));
+    mSelf.userNickName = fromUnicode(QString(QHostInfo::localHostName()));
     mSelf.userGroupName = fromUnicode(QString(tr(IPMSG_DEFAULT_GROUPNAME)));
 
     mStartIp = 0;
