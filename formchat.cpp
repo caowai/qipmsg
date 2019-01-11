@@ -38,6 +38,8 @@ FormChat::FormChat(QWidget *parent) :
     mSendFileCmdMenu = new QMenu(this);
     mRecvFileCmdMenu = new QMenu(this);
     QStringList header;
+    header<<tr("File Name")<<tr("File Size");
+
     addfileAction = mSendFileCmdMenu->addAction(tr("Add File"));
     delfileAction = mSendFileCmdMenu->addAction(tr("Remove File"));
     delAllAction = mSendFileCmdMenu->addAction(tr("Remove All"));
@@ -292,6 +294,16 @@ void FormChat::rejectAllShareFile()
 }
 bool FormChat::event(QEvent *event)
 {
+    QAction *addfileAction = nullptr;
+    QAction *delfileAction = nullptr;
+    QAction *delAllAction = nullptr;
+    QAction *acceptfileAction = nullptr;
+    QAction *rejectfileAction = nullptr;
+    QAction *acceptAllAction = nullptr;
+    QAction *rejectAllAction = nullptr;
+
+    QStringList header;
+
     //Language change event from QIPMSG
     if(event->type() == QEvent::LanguageChange)
     {
@@ -301,6 +313,27 @@ bool FormChat::event(QEvent *event)
         setClient(mClient);
         setUserName(mUser);
         setGroupName(mGroup);
+
+
+        header<<tr("File Name")<<tr("File Size");
+        ui->tableWidgetSendFileList->setHorizontalHeaderLabels(header);
+        ui->tableWidgetRecvFileList->setHorizontalHeaderLabels(header);
+
+        delete mSendFileCmdMenu;
+        delete mRecvFileCmdMenu;
+
+        mSendFileCmdMenu = new QMenu(this);
+        mRecvFileCmdMenu = new QMenu(this);
+
+        addfileAction = mSendFileCmdMenu->addAction(tr("Add File"));
+        delfileAction = mSendFileCmdMenu->addAction(tr("Remove File"));
+        delAllAction = mSendFileCmdMenu->addAction(tr("Remove All"));
+
+        acceptfileAction = mRecvFileCmdMenu->addAction(tr("Accept"));
+        rejectfileAction = mRecvFileCmdMenu->addAction(tr("Reject"));
+        acceptAllAction = mRecvFileCmdMenu->addAction(tr("Accpet All"));
+        rejectAllAction = mRecvFileCmdMenu->addAction(tr("Reject All"));
+
     }
     //Must call QWidget:event(event) or the process to be broken
 
