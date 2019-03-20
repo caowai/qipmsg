@@ -16,7 +16,6 @@
 #include "ipmsgudpsession.h"
 #include "ipmsgfilerecv.h"
 
-
 namespace Ui {
 class QIPMSG;
 }

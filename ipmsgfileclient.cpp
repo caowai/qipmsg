@@ -1,6 +1,7 @@
 #include "ipmsgfileclient.h"
 #include "ipmsgudpsession.h"
 #include <QTcpSocket>
+#include <QDateTime>
 extern quint32 g_pkg_seq;
 
 IpMsgFileClient::IpMsgFileClient(IpMsgUser *user,QObject *parent) : QObject(parent)
@@ -86,8 +87,10 @@ void IpMsgFileClient::ipMsgFileClientRecv()
 {
     QByteArray data;
     qint64 len;
+    QDateTime timestamp;
     data.clear();
     data.resize(8192);
+
 
     QTcpSocket* sock = qobject_cast<QTcpSocket*>(sender());
 
@@ -125,7 +128,10 @@ void IpMsgFileClient::ipMsgFileClientRecv()
     if(mSize >= recvFileInfo.info.size)
     {
         qDebug()<<"Receive"<<recvFileInfo.info.fileName<<"finished";
+        timestamp.setTime_t(recvFileInfo.info.metadataChangeTime);
         mFile.close();
+        mFile.setFileTime(timestamp,QFileDevice::FileModificationTime);
+        //qDebug() << timestamp.toString(Qt::SystemLocaleShortDate);
         sock->disconnectFromHost();
         return;
     }

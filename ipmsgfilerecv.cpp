@@ -10,6 +10,7 @@ IpMsgFileRecv::IpMsgFileRecv(IpMsgUser *user,fileEntryT *file, QObject *parent) 
     client->recvFileInfo.info.size = file->info.size;
     client->recvFileInfo.info.permission = file->info.permission;
     client->recvFileInfo.info.absoluteFilePath = file->info.absoluteFilePath;
+    client->recvFileInfo.info.metadataChangeTime = file->info.metadataChangeTime;
     client->recvFileInfo.fileHost = file->fileHost;
     client->recvFileInfo.fileId = file->fileId;
     client->recvFileInfo.fileOut = file->fileOut;

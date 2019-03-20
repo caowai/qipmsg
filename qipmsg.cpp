@@ -19,7 +19,7 @@ QIPMSG::QIPMSG(QWidget *parent) :
     QApplication::instance()->installTranslator(qIpMsgLang);
 
     mSelf.userId=fromUnicode(QString(QHostInfo::localHostName()));
-    mSelf.userVer=QString(IPMSG_VERSION).toUtf8();
+    mSelf.userVer= QString(IPMSG_VERSION).toUtf8();
     mSelf.userPktSeq = 0;
     mSelf.userHostName = QHostInfo::localHostName().toUtf8();
     mSelf.userNickName = fromUnicode(QString(QHostInfo::localHostName()));
@@ -489,6 +489,7 @@ void QIPMSG::timerEvent(QTimerEvent *event)
                          || mUsers.at(i)->chatForm->isHidden())
                  {
                      mUsers.at(i)->blinkTimer=startTimer(500);
+                     QApplication::alert(this);
                  }
                  break;
              }
@@ -514,9 +515,20 @@ void QIPMSG::timerEvent(QTimerEvent *event)
                         newFile->fileId = tmp.at(0).toUInt();
                         newFile->info.fileName = tmp.at(1);
                         newFile->info.size = tmp.at(2).toUInt(nullptr,16);
-                        newFile->info.permission = tmp.at(3).toUInt(nullptr,16);
+                        newFile->info.metadataChangeTime = tmp.at(3).toUInt(nullptr,16);
+                        newFile->info.permission = tmp.at(4).toUInt(nullptr,16);
                         newFile->fileHost = mUsers.at(i)->userHostAddr.toIPv4Address();
                         newFile->fileTranStatus = FILE_TRANS_STATUS_IDLE;
+                        if(newFile->info.permission != IPMSG_FILE_REGULAR)
+                        {
+
+                            qDebug()<<"Not support file type"<<newFile->info.permission;
+                            mUsers.at(i)->appendChatHistory(toUnicode(mUsers.at(i)->userNickName+" "+QDateTime::currentDateTime().toString("hh:mm:ss").toUtf8()+"\n"));
+                            mUsers.at(i)->appendChatHistory(tr("Do not support directory")+"\""+toUnicode(tmp.at(1))+"\""+"\n");
+                            mUsers.at(i)->updateChatFormHistory();
+                            delete  newFile;
+                            continue;
+                        }
                         mUsers.at(i)->chatForm->addRemoteShareFile(newFile);
                         qDebug()<<"Add"<<tmp.at(1);
                      }

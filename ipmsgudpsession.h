@@ -8,12 +8,6 @@
 #include <QUdpSocket>
 #include "ipmsguser.h"
 
-#define IPMSG_VERSION   "1_QIPMSGV01"
-
-#define IPMSG_DEFAULT_USERNAME  "QIPMSG.U"
-#define IPMSG_DEFAULT_NICKNAME  "QIPMSG.N"
-#define IPMSG_DEFAULT_GROUPNAME "QIPMSG"
-
 #define IPMSG_RETRY_COUNT   4
 
 #define IPMSG_PORT 0x979

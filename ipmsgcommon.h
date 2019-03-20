@@ -4,6 +4,12 @@
 #include <QCoreApplication>
 #include <QDir>
 
+#define IPMSG_VERSION   "1_QIPMSGV01"
+
+#define IPMSG_DEFAULT_USERNAME  "QIPMSG.U"
+#define IPMSG_DEFAULT_NICKNAME  "QIPMSG.N"
+#define IPMSG_DEFAULT_GROUPNAME "QIPMSG"
+
 typedef struct fileEntryInfoT
 {
     qint64 size;

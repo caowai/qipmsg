@@ -230,11 +230,17 @@ void FormChat::addRemoteShareFile(fileEntryT *newfile)
 void FormChat::acceptShareFile()
 {
     qDebug()<<__FUNCTION__;
+    if(ui->tableWidgetRecvFileList->rowCount()<=0)
+    {
+        return;
+    }
+    qDebug()<<"Count"<<ui->tableWidgetRecvFileList->columnCount();
     QString dir  = QFileDialog::getExistingDirectory(nullptr,tr("Select a directory to save files"),QDir::homePath());
     if(dir.length() == 0)
     {
         dir = QDir::homePath();
     }
+
     int index = ui->tableWidgetRecvFileList->currentRow();
     if(fileList.at(index)->fileTranStatus == FILE_TRANS_STATUS_IDLE)
     {
@@ -247,6 +253,10 @@ void FormChat::acceptShareFile()
 
 void FormChat::rejectShareFile()
 {
+    if(ui->tableWidgetRecvFileList->rowCount()<=0)
+    {
+        return;
+    }
     int index = ui->tableWidgetRecvFileList->currentRow();
     if(fileList.at(index)->fileTranStatus == FILE_TRANS_STATUS_IDLE)
     {
@@ -261,6 +271,10 @@ void FormChat::rejectShareFile()
 void FormChat::acceptAllShareFile()
 {
     qDebug()<<__FUNCTION__;
+    if(ui->tableWidgetRecvFileList->rowCount()<=0)
+    {
+        return;
+    }
     QString dir  = QFileDialog::getExistingDirectory(nullptr,tr("Select a directory to save files"),QDir::homePath());
 
     if(dir.length() == 0)
@@ -285,6 +299,11 @@ void FormChat::acceptAllShareFile()
 void FormChat::rejectAllShareFile()
 {
     qDebug()<<__FUNCTION__;
+
+    if(ui->tableWidgetRecvFileList->rowCount()<=0)
+    {
+        return;
+    }
 
     for(int i=0;i<fileList.count();i++)
     {
