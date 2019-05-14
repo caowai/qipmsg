@@ -1,6 +1,8 @@
 # qipmsg
 QT IPMSG Client - Just a software for QT Study.
+
 I Tested it on Linux/Windows.
+
 Features:
 1. User List
 2. Send/Receive Text Message.
