@@ -25,12 +25,10 @@ QIPMSG::QIPMSG(QWidget *parent) :
     mSelf.userNickName = fromUnicode(QString(QHostInfo::localHostName()));
     mSelf.userGroupName = fromUnicode(QString(tr(IPMSG_DEFAULT_GROUPNAME)));
 
-    mStartIp = 0;
-    mEndIp = 0;
+    mStartIp = QHostAddress("172.16.182.1").toIPv4Address();
+    mEndIp = QHostAddress("172.16.185.254").toIPv4Address();
 
     ui->setupUi(this);
-
-
 
     fileServer = new IpMsgFileServer();
 
@@ -370,10 +368,10 @@ void QIPMSG::timerEvent(QTimerEvent *event)
      uint32_t pktCommand;
      uint8_t command;
      uint32_t commandOpt;
-     QByteArrayList values;
-     QByteArrayList others;
+     QList <QByteArray> values;
+     QList <QByteArray> others;
      QByteArray chatData;
-     QByteArrayList files;
+     QList <QByteArray> files;
 
      int i =0;
 
@@ -504,10 +502,10 @@ void QIPMSG::timerEvent(QTimerEvent *event)
             {
              for(int k =0; k<files.count();k++)
              {
-                 QByteArrayList fileList = files.at(k).split('\a');
+                 QList <QByteArray> fileList = files.at(k).split('\a');
                  for(int b= 0; b<fileList.count();b++)
                  {
-                     QByteArrayList tmp = fileList.at(b).split(':');
+                     QList <QByteArray> tmp = fileList.at(b).split(':');
                      if(tmp.count()>5)
                      {
                         fileEntryT *newFile = new fileEntryT();
@@ -613,7 +611,7 @@ void QIPMSG::qIpMsgFileServerHandle(quint32 ip, quint16 port, QByteArray data)
     QHostAddress addr;
 
     QByteArray dataSample= "1_lbt80_0#160#FC4DD4D98024#0#0#0#4000#9:1546091332:caoweigang:CAOWEIGANG:96:5:2710:0:";
-    QByteArrayList value = data.split(':');
+    QList <QByteArray> value = data.split(':');
 
     addr.setAddress(ip);
     qDebug()<<"Handle data"<<data<<"From"<<addr.toString()<<"Port:"<<port;

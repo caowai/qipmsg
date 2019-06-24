@@ -130,7 +130,7 @@ void IpMsgFileClient::ipMsgFileClientRecv()
         qDebug()<<"Receive"<<recvFileInfo.info.fileName<<"finished";
         timestamp.setTime_t(recvFileInfo.info.metadataChangeTime);
         mFile.close();
-        mFile.setFileTime(timestamp,QFileDevice::FileModificationTime);
+        //mFile.setFileTime(timestamp,QFileDevice::FileModificationTime);
         //qDebug() << timestamp.toString(Qt::SystemLocaleShortDate);
         sock->disconnectFromHost();
         return;

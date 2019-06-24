@@ -148,7 +148,11 @@ void FormChat::addShareFile()
         fileNode->info.size = fileinfo.size();
         fileNode->info.permission = fileinfo.permissions();
         fileNode->info.absoluteFilePath = fileinfo.absoluteFilePath();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
         fileNode->info.metadataChangeTime = fileinfo.metadataChangeTime().toTime_t();
+#else
+        fileNode->info.metadataChangeTime = fileinfo.created().toTime_t();
+#endif
 
         fileNode->fileId = g_send_file_id++;
         fileNode->fileHost = QHostAddress(ui->labelChatHostValue->text()).toIPv4Address();
@@ -195,23 +199,7 @@ void FormChat::addRemoteShareFile(fileEntryT *newfile)
 {
     QProgressBar *sizeBar = nullptr;
     int current_row = ui->tableWidgetRecvFileList->rowCount();
-#if 0
-    fileEntryT *fileNode =  nullptr;
-    fileNode = new fileEntryT();
-    fileNode->info.fileName = newfile->info.fileName;
-    fileNode->info.size = newfile->info.size;
-    fileNode->info.permission = newfile->info.permission;
-    fileNode->info.absoluteFilePath = newfile->info.absoluteFilePath;
-    fileNode->info.metadataChangeTime = newfile->info.metadataChangeTime;
-    fileNode->fileId = newfile->fileId;
-    fileNode->fileHost = newfile->fileHost;
-    fileNode->filePort = newfile->filePort;
-    fileNode->fileOffset = newfile->fileOffset;
-    fileNode->fileTranStatus = FILE_TRANS_STATUS_IDLE;
-    fileList.append(fileNode);
-#else
     fileList.append(newfile);
-#endif
     //emit addSendFile(file);
 
     QTableWidgetItem *row1Item = new QTableWidgetItem(newfile->info.fileName);
